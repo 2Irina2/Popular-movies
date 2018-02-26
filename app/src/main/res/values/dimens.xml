@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="details_base_details_padding">8dp</dimen>
+    <dimen name="details_title_rating_date_padding_left">8dp</dimen>
+    <dimen name="details_title_rating_date_padding_right">8dp</dimen>
+    <dimen name="details_title_text_size">24sp</dimen>
+    <dimen name="details_rating_text_size">20sp</dimen>
+    <dimen name="details_rating_icon_margin_left">8dp</dimen>
+    <dimen name="details_synopsis_label_text_size">20sp</dimen>
+    <dimen name="details_synopsis_label_padding_left">8sp</dimen>
+    <dimen name="details_synopsis_label_padding_right">8sp</dimen>
+    <dimen name="details_synopsis_padding_left">8sp</dimen>
+    <dimen name="details_synopsis_padding_right">8sp</dimen>
+    <dimen name="details_synopsis_text_size">16sp</dimen>
+    <dimen name="details_synopsis_padding_bottom">8dp</dimen>
+    <dimen name="error_no_internet_margin_left">100dp</dimen>
+    <dimen name="error_no_internet_margin_right">100dp</dimen>
+</resources>

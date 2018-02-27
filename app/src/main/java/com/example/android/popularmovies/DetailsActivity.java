@@ -29,7 +29,7 @@ public class DetailsActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        Movie selectedMovie = (Movie) getIntent().getSerializableExtra("selectedMovie");
+        Movie selectedMovie = (Movie) getIntent().getParcelableExtra("selectedMovie");
 
         movieTitleTextView = findViewById(R.id.details_title_tv);
         moviePosterImageView = findViewById(R.id.details_poster_iv);

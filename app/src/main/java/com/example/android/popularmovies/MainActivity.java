@@ -79,7 +79,12 @@ public class MainActivity extends AppCompatActivity implements
 
     public void makeMovieDBSearchQuery(String string){
         URL movieDBUrl = NetworkUtils.buildURL(string);
-        new MovieDBQueryTask().execute(movieDBUrl);
+        if(NetworkUtils.hasInternetAccess(this)){
+            new MovieDBQueryTask().execute(movieDBUrl);
+            errorDisplayLinearLayout.setVisibility(View.INVISIBLE);
+        } else {
+            errorDisplayLinearLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -131,9 +136,7 @@ public class MainActivity extends AppCompatActivity implements
             try{
                 movieDbQueryResult = NetworkUtils.getResponseFromHTTPUrl(queryUrl);
             } catch (IOException e){
-                //Log.e(this.getClass().getName(), "IOException: " + queryUrl);
-                errorDisplayLinearLayout.setVisibility(View.VISIBLE);
-                return null;
+                Log.e(this.getClass().getName(), "IOException: " + queryUrl);
             }
 
             try {

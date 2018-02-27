@@ -1,6 +1,10 @@
 package com.example.android.popularmovies;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.support.v4.BuildConfig;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -24,7 +28,7 @@ public class NetworkUtils {
 
     private static final String MOVIEDB_BASE_URL = "https://api.themoviedb.org/3/movie";
     private static final String PARAM_API_KEY = "api_key";
-    private static final String API_KEY = ""; //TODO: INSERT YOUR API HERE
+    private static final String API_KEY = com.example.android.popularmovies.BuildConfig.API_KEY;
 
     public static URL buildURL(String criterion){
         Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
@@ -118,5 +122,16 @@ public class NetworkUtils {
         }
 
         return finalMovieList;
+    }
+
+    public static boolean hasInternetAccess(Context context){
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        return isConnected;
     }
 }

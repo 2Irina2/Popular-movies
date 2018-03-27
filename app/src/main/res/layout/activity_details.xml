@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.android.popularmovies.DetailsActivity">
+    tools:context="com.example.android.popularmovies.DetailsActivity"
+    android:fillViewport="true">
 
     <LinearLayout
         android:id="@+id/details"
@@ -85,14 +86,14 @@
         <TextView
             android:id="@+id/details_synopsis_label"
             android:textStyle="bold"
-            android:textSize="@dimen/details_synopsis_label_text_size"
-            android:paddingLeft="@dimen/details_synopsis_label_padding_left"
-            android:paddingRight="@dimen/details_synopsis_label_padding_right"
+            android:textSize="@dimen/details_label_text_size"
+            android:paddingLeft="@dimen/details_label_padding_left"
+            android:paddingRight="@dimen/details_label_padding_right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/activity_details_synopsis_label"
-            android:paddingStart="@dimen/details_synopsis_label_padding_left"
-            android:paddingEnd="@dimen/details_synopsis_label_padding_right" />
+            android:paddingStart="@dimen/details_label_padding_left"
+            android:paddingEnd="@dimen/details_label_padding_right" />
 
         <TextView
             android:id="@+id/details_synopsis_tv"
@@ -104,6 +105,61 @@
             android:layout_height="wrap_content"
             android:paddingStart="@dimen/details_synopsis_padding_left"
             android:paddingEnd="@dimen/details_synopsis_padding_right" />
+
+        <TextView
+            android:id="@+id/details_trailers_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_details_trailers_label"
+            android:textStyle="bold"
+            android:textSize="@dimen/details_label_text_size"
+            android:paddingTop="@dimen/details_label_padding_top"
+            android:paddingLeft="@dimen/details_label_padding_left"
+            android:paddingRight="@dimen/details_label_padding_right"
+            android:paddingEnd="@dimen/details_label_padding_right"
+            android:paddingStart="@dimen/details_label_padding_left" />
+
+        <com.example.android.popularmovies.NonScrollListView
+            android:id="@+id/details_trailers_lv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+        <TextView
+            android:id="@+id/trailers_empty_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_details_loading_text_view"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            />
+
+        <TextView
+            android:id="@+id/details_reviews_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_details_reviews_label"
+            android:textStyle="bold"
+            android:textSize="@dimen/details_label_text_size"
+            android:paddingTop="@dimen/details_label_padding_top"
+            android:paddingLeft="@dimen/details_label_padding_left"
+            android:paddingRight="@dimen/details_label_padding_right"
+            android:paddingEnd="@dimen/details_label_padding_right"
+            android:paddingStart="@dimen/details_label_padding_left" />
+
+        <com.example.android.popularmovies.NonScrollListView
+            android:id="@+id/details_reviews_lv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+        <TextView
+            android:id="@+id/reviews_empty_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_details_loading_text_view"
+            android:textColor="@android:color/black"
+            android:gravity="center_horizontal"
+            />
 
     </LinearLayout>
 </ScrollView>

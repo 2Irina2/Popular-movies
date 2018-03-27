@@ -1,11 +1,14 @@
-package com.example.android.popularmovies;
+package com.example.android.popularmovies.Utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.support.v4.BuildConfig;
 import android.util.Log;
+
+import com.example.android.popularmovies.Movie;
+import com.example.android.popularmovies.Review;
+import com.example.android.popularmovies.Trailer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +30,8 @@ import java.util.Scanner;
 public class NetworkUtils {
 
     private static final String MOVIEDB_BASE_URL = "https://api.themoviedb.org/3/movie";
+    private static final String PATH_VIDEOS = "videos";
+    private static final String PATH_REVIEWS = "reviews";
     private static final String PARAM_API_KEY = "api_key";
     private static final String API_KEY = com.example.android.popularmovies.BuildConfig.API_KEY;
 
@@ -36,6 +41,32 @@ public class NetworkUtils {
                 .appendQueryParameter(PARAM_API_KEY, API_KEY)
                 .build();
 
+        return uriToUrl(builtUri);
+
+    }
+
+    public static URL buildTrailersURL(int movieId){
+        Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                .appendPath(Integer.toString(movieId))
+                .appendPath(PATH_VIDEOS)
+                .appendQueryParameter(PARAM_API_KEY, API_KEY)
+                .build();
+
+        return uriToUrl(builtUri);
+    }
+
+
+    public static URL buildReviewsURL(int movieId){
+        Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                .appendPath(Integer.toString(movieId))
+                .appendPath(PATH_REVIEWS)
+                .appendQueryParameter(PARAM_API_KEY, API_KEY)
+                .build();
+
+        return uriToUrl(builtUri);
+    }
+
+    private static URL uriToUrl(Uri builtUri){
         URL url = null;
         try{
             url = new URL(builtUri.toString());
@@ -66,7 +97,7 @@ public class NetworkUtils {
         }
     }
 
-    public static List<Movie> parseJSON(String string) throws JSONException {
+    public static List<Movie> parseMoviesJSON(String string) throws JSONException {
         List<Movie> finalMovieList = new ArrayList<Movie>();
         JSONObject result = new JSONObject(string);
 
@@ -112,7 +143,13 @@ public class NetworkUtils {
                         }
                     }
 
+                    int movieId = 0;
+                    if(movieJsonObject.has("id")){
+                        movieId = movieJsonObject.getInt("id");
+                    }
+
                     finalMovieList.add(new Movie(movieTitle,
+                            movieId,
                             moviePosterPath,
                             movieSynopsis,
                             movieRating,
@@ -122,6 +159,73 @@ public class NetworkUtils {
         }
 
         return finalMovieList;
+    }
+
+    public static List<Trailer> parseTrailersJSON(String string) throws JSONException{
+        List<Trailer> finalTrailerList = new ArrayList<Trailer>();
+        JSONObject result = new JSONObject(string);
+
+        if(result.has("results")) {
+            JSONArray trailersList = result.getJSONArray("results");
+
+            if (trailersList.length() != 0) {
+                for(int i = 0; i < trailersList.length(); i++){
+                    JSONObject trailer = trailersList.getJSONObject(i);
+
+
+                    String trailerPath = "N/A";
+                    if(trailer.has("key")){
+                        if(!trailer.getString("key").equals("")){
+                            trailerPath = trailer.getString("key");
+                        }
+                    }
+
+                    String trailerName = "Trailer";
+                    if(trailer.has("name")){
+                        if(!trailer.getString("name").equals("")){
+                            trailerName = trailer.getString("name");
+                        }
+                    }
+
+                    finalTrailerList.add(new Trailer(trailerName, trailerPath));
+
+                }
+            }
+        }
+
+        return finalTrailerList;
+    }
+
+    public static List<Review> parseReviewsJSON(String string) throws JSONException{
+        List<Review> finalReviewsList = new ArrayList<Review>();
+        JSONObject result = new JSONObject(string);
+
+        if(result.has("results") && result.getJSONArray("results").length() != 0){
+            JSONArray reviewsList = result.getJSONArray("results");
+
+            for(int i = 0; i < reviewsList.length(); i++){
+                JSONObject review = reviewsList.getJSONObject(i);
+
+                String user = "anonymous";
+                if(review.has("author")){
+                    if(!review.getString("author").equals("")){
+                        user = review.getString("author");
+                    }
+
+                }
+
+                String content = "N/A";
+                if(review.has("content")){
+                    if(!review.getString("content").equals("")){
+                        content = review.getString("content");
+                    }
+
+                }
+                finalReviewsList.add(new Review(user, content));
+            }
+        }
+
+        return finalReviewsList;
     }
 
     public static boolean hasInternetAccess(Context context){

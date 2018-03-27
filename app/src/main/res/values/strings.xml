@@ -2,6 +2,7 @@
     <string name="app_name">PopularMovies</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_favorite">Favorite</string>
     <string name="activity_settings_label">Settings</string>
 
     <string name="preference_sort_key">preference_sort</string>
@@ -10,17 +11,24 @@
     <string-array name="preference_sort_entries">
         <item>Most Popular</item>
         <item>Top Rated</item>
+        <item>Favorites</item>
     </string-array>
     <string-array name="preference_sort_entry_values">
         <item>popular</item>
         <item>top_rated</item>
+        <item>favorites</item>
     </string-array>
 
     <string name="activity_details_label">Movie Details</string>
     <string name="activity_details_synopsis_label">Synopsis: </string>
     <string name="activity_details_poster_content_descriptor">Movie poster</string>
     <string name="activity_details_rating_icon_content_descriptor">User Rating Icon</string>
+    <string name="activity_details_trailers_label">Trailers: </string>
+    <string name="activity_details_reviews_label">Reviews: </string>
 
-    <string name="error_internet_connection">It looks like you\'re not connected to the internet.
-        Please check your internet connection and try again later</string>
+    <string name="activity_details_loading_text_view">Loading...</string>
+    <string name="error_internet_connection">No network access. Please check your internet connection</string>
+    <string name="error_database_empty">No favorite movies found</string>
+    <string name="empty_trailers_text_view">No trailers found on TheMovieDb</string>
+    <string name="empty_reviews_text_view">No reviews found on TheMovieDb</string>
 </resources>

@@ -15,13 +15,15 @@ public class Movie implements Parcelable{
     private static final String IMAGE_URL_SIZE = "w185/";
 
     private String mTitle;
+    private int mId;
     private String mPosterPath;
     private String mSynopsis;
     private String mRating;
     private String mReleaseDate;
 
-    public Movie(String title, String path, String synopis, String rating, String releaseDate){
+    public Movie(String title, int id, String path, String synopis, String rating, String releaseDate){
         mTitle = title;
+        mId = id;
         mPosterPath = path;
         mSynopsis = synopis;
         mRating = rating;
@@ -30,6 +32,7 @@ public class Movie implements Parcelable{
 
     protected Movie (Parcel in) {
         mTitle = in.readString();
+        mId = in.readInt();
         mPosterPath = in.readString();
         mSynopsis = in.readString();
         mRating = in.readString();
@@ -51,7 +54,7 @@ public class Movie implements Parcelable{
     public String getTitle(){
         return mTitle;
     }
-
+    public int getId(){ return mId;}
     public String getPosterPath(){
         return IMAGE_URL_BASE + IMAGE_URL_SIZE + mPosterPath;
     }
@@ -73,9 +76,10 @@ public class Movie implements Parcelable{
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(mTitle);
+        parcel.writeInt(mId);
         parcel.writeString(mPosterPath);
+        parcel.writeString(mSynopsis);
         parcel.writeString(mRating);
         parcel.writeString(mReleaseDate);
-        parcel.writeString(mSynopsis);
     }
 }

@@ -55,6 +55,7 @@ public class Movie implements Parcelable{
         return mTitle;
     }
     public int getId(){ return mId;}
+    public String getRawPosterPath() {return mPosterPath;}
     public String getPosterPath(){
         return IMAGE_URL_BASE + IMAGE_URL_SIZE + mPosterPath;
     }

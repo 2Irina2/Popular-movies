@@ -1,12 +1,12 @@
 package com.example.android.popularmovies;
 
-import android.Manifest;
+import android.annotation.SuppressLint;
+import android.support.v4.app.LoaderManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.preference.ListPreference;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,7 +34,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
-        RecyclerViewAdapter.ItemClickListener {
+        RecyclerViewAdapter.ItemClickListener,
+        LoaderManager.LoaderCallbacks<Cursor>{
 
     private int NUMBER_COLUMNS = 2;
     private String criterion;
@@ -43,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements
     private List<Movie> finalMovieList;
     private LinearLayout errorDisplayLinearLayout;
     private ProgressBar loadingIndicatorProgressBar;
+
+    private static final int MAIN_LOADER_ID = 0;
 
     private SQLiteDatabase mDb;
 
@@ -84,7 +87,15 @@ public class MainActivity extends AppCompatActivity implements
         if(!criterion.equals("favorites")){
             makeMovieDBSearchQuery(criterion);
         } else {
-            makeSqlDBQuery();
+            getSupportLoaderManager().initLoader(MAIN_LOADER_ID, null, this);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(criterion.equals("favorites")){
+            getSupportLoaderManager().restartLoader(MAIN_LOADER_ID, null, this);
         }
     }
 
@@ -103,56 +114,6 @@ public class MainActivity extends AppCompatActivity implements
             errorDisplayLinearLayout.setVisibility(View.VISIBLE);
             TextView errorTv = errorDisplayLinearLayout.findViewById(R.id.error_message_tv);
             errorTv.setText(getResources().getString(R.string.error_internet_connection));
-        }
-    }
-
-    public void makeSqlDBQuery(){
-        Cursor movies = mDb.query(
-                PopularMoviesContract.MovieEntry.TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                PopularMoviesContract.MovieEntry._ID);
-
-        if(movies.getCount() <= 0){
-            errorDisplayLinearLayout.setVisibility(View.VISIBLE);
-            TextView errorTv = errorDisplayLinearLayout.findViewById(R.id.error_message_tv);
-            errorTv.setText(getResources().getString(R.string.error_database_empty));
-        } else {
-            Log.e(MainActivity.class.getName(), "DB NOT EMPTY");
-            List<Movie> favoriteMovies = new ArrayList<Movie>();
-            movies.moveToFirst();
-            do{
-                String movieName = movies.getString(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_MOVIE_TITLE));
-                int movieId = movies.getInt(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_ID));
-                String moviePosterPath = movies.getString(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_POSTER));
-                String movieSynopsis = movies.getString(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_SYNOPSIS));
-                String movieRating = movies.getString(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_RATING));
-                String movieReleaseDate = movies.getString(movies.getColumnIndex(
-                        PopularMoviesContract.MovieEntry.COLUMN_RELEASE_DATE));
-
-                Log.e(MainActivity.class.getName(), movieName + " : " + movieRating);
-
-                favoriteMovies.add(new Movie(movieName,
-                        movieId,
-                        moviePosterPath,
-                        movieSynopsis,
-                        movieRating,
-                        movieReleaseDate));
-
-            } while(movies.moveToNext());
-
-            finalMovieList = favoriteMovies;
-            movies.close();
-            Log.e(MainActivity.class.getName(), "FINISHED ITERATING THROUGH CURSOR");
-            setUpRecyclerViewAdapter();
         }
     }
 
@@ -185,6 +146,58 @@ public class MainActivity extends AppCompatActivity implements
         Intent startDetailsActivity = new Intent(this, DetailsActivity.class);
         startDetailsActivity.putExtra("selectedMovie", selectedMovie);
         startActivity(startDetailsActivity);
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    @Override
+    public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new android.support.v4.content.AsyncTaskLoader<Cursor>(this) {
+
+            Cursor mTaskData = null;
+
+            @Override
+            protected void onStartLoading() {
+                if (mTaskData != null) {
+                    // Delivers any previously loaded data immediately
+                    deliverResult(mTaskData);
+                } else {
+                    // Force a new load
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Cursor loadInBackground() {
+                try{
+                    return getContentResolver().query(PopularMoviesContract.MovieEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            null);
+                } catch (Exception e){
+                    Log.e(MainActivity.class.getName(), "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                    return null;
+                }
+
+
+            }
+
+            public void deliverResult(Cursor data) {
+                mTaskData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
+        readFromCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
+        setUpRecyclerViewAdapter();
     }
 
     public class MovieDBQueryTask extends AsyncTask<URL, Void, List<Movie>>{
@@ -232,7 +245,43 @@ public class MainActivity extends AppCompatActivity implements
         recyclerViewAdapter = new RecyclerViewAdapter(MainActivity.this, finalMovieList);
         recyclerView.setAdapter(recyclerViewAdapter);
         recyclerViewAdapter.setClickListener(MainActivity.this);
-        Log.e(MainActivity.class.getName(), "RECYCLERVIEW ADAPTER SET");
+    }
+
+    public void readFromCursor(Cursor movies){
+        if(movies.getCount() <= 0){
+            errorDisplayLinearLayout.setVisibility(View.VISIBLE);
+            TextView errorTv = errorDisplayLinearLayout.findViewById(R.id.error_message_tv);
+            errorTv.setText(getResources().getString(R.string.error_database_empty));
+        } else {
+            List<Movie> favoriteMovies = new ArrayList<Movie>();
+            movies.moveToFirst();
+            do{
+                String movieName = movies.getString(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_MOVIE_TITLE));
+                int movieId = movies.getInt(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_ID));
+                String moviePosterPath = movies.getString(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_POSTER));
+                String movieSynopsis = movies.getString(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_SYNOPSIS));
+                String movieRating = movies.getString(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_RATING));
+                String movieReleaseDate = movies.getString(movies.getColumnIndex(
+                        PopularMoviesContract.MovieEntry.COLUMN_RELEASE_DATE));
+
+                favoriteMovies.add(new Movie(movieName,
+                        movieId,
+                        moviePosterPath,
+                        movieSynopsis,
+                        movieRating,
+                        movieReleaseDate));
+
+            } while(movies.moveToNext());
+
+            finalMovieList = favoriteMovies;
+            //movies.close();
+            setUpRecyclerViewAdapter();
+        }
     }
 
 }

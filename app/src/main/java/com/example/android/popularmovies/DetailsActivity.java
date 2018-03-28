@@ -1,13 +1,16 @@
 package com.example.android.popularmovies;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.popularmovies.Utils.NetworkUtils;
 import com.example.android.popularmovies.data.PopularMoviesContract;
@@ -32,7 +36,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class DetailsActivity extends AppCompatActivity {
+public class DetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     TextView movieTitleTextView;
     ImageView moviePosterImageView;
@@ -50,6 +54,7 @@ public class DetailsActivity extends AppCompatActivity {
     Movie selectedMovie = null;
 
     long movieDbId;
+    private static final int DETAILS_LOADER_ID = 10;
 
     SQLiteDatabase mDb;
 
@@ -106,16 +111,8 @@ public class DetailsActivity extends AppCompatActivity {
         makeTrailersQuerySearch(movieId);
         makeReviewsQuerySearch(movieId);
 
-        Cursor queryMovieCursor = queryMovie(selectedMovie.getId());
-        if(queryMovieCursor != null && queryMovieCursor.getCount() > 0){
-            queryMovieCursor.moveToFirst();
-            movieDbId = queryMovieCursor.getInt(
-                    queryMovieCursor.getColumnIndex(PopularMoviesContract.MovieEntry._ID));
-        } else {
-            movieDbId = -1;
-        }
+        getSupportLoaderManager().initLoader(DETAILS_LOADER_ID, null, this);
 
-        Log.e(DetailsActivity.class.getName(), "Elements in table: " + DatabaseUtils.queryNumEntries(mDb, PopularMoviesContract.MovieEntry.TABLE_NAME));
     }
 
     public void makeTrailersQuerySearch(int id){
@@ -167,7 +164,6 @@ public class DetailsActivity extends AppCompatActivity {
                 else{
                     item.setIcon(R.drawable.ic_favorite_white_24dp);
                     movieDbId = addNewMovie(selectedMovie);
-                    Log.e(DetailsActivity.class.getName(), Long.toString(movieDbId));
                 }
                 return true;
             default:
@@ -181,29 +177,77 @@ public class DetailsActivity extends AppCompatActivity {
 
         cv.put(PopularMoviesContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
         cv.put(PopularMoviesContract.MovieEntry.COLUMN_ID, movie.getId());
-        cv.put(PopularMoviesContract.MovieEntry.COLUMN_POSTER, movie.getPosterPath());
+        cv.put(PopularMoviesContract.MovieEntry.COLUMN_POSTER, movie.getRawPosterPath());
         cv.put(PopularMoviesContract.MovieEntry.COLUMN_RATING, movie.getRating());
         cv.put(PopularMoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
         cv.put(PopularMoviesContract.MovieEntry.COLUMN_SYNOPSIS, movie.getSynopsis());
 
-        return mDb.insert(PopularMoviesContract.MovieEntry.TABLE_NAME, null, cv);
+        Uri uri = getContentResolver().insert(PopularMoviesContract.MovieEntry.CONTENT_URI, cv);
+        String id = uri.getPathSegments().get(1);
+
+        return Long.parseLong(id);
     }
 
     private void removeMovie(long id){
-        mDb.delete(PopularMoviesContract.MovieEntry.TABLE_NAME,
-                PopularMoviesContract.MovieEntry._ID + " = " + id,
-                null);
+        String stringId = Long.toString(id);
+        Uri uri = PopularMoviesContract.MovieEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+
+        getContentResolver().delete(uri, null, null);
     }
 
-    private Cursor queryMovie(int id){
-        String[] whereIs = {Integer.toString(id)};
-        return mDb.query(PopularMoviesContract.MovieEntry.TABLE_NAME,
-                null,
-                PopularMoviesContract.MovieEntry.COLUMN_ID + " = ? ",
-                whereIs,
-                null,
-                null,
-                null);
+    @SuppressLint("StaticFieldLeak")
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+        return new android.support.v4.content.AsyncTaskLoader<Cursor>(this) {
+
+            Cursor mTaskData = null;
+
+            @Override
+            protected void onStartLoading() {
+                if (mTaskData != null) {
+                    // Delivers any previously loaded data immediately
+                    deliverResult(mTaskData);
+                } else {
+                    // Force a new load
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Cursor loadInBackground() {
+                try{
+                    String[] whereIs = {Integer.toString(selectedMovie.getId())};
+                    return getContentResolver().query(PopularMoviesContract.MovieEntry.CONTENT_URI,
+                            null,
+                            PopularMoviesContract.MovieEntry.COLUMN_ID + " = ? ",
+                            whereIs,
+                            null);
+                } catch (Exception e){
+                    Log.e(MainActivity.class.getName(), "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                    return null;
+                }
+
+
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader loader, Cursor data) {
+        if(data != null && data.getCount() > 0){
+            data.moveToFirst();
+            movieDbId = data.getInt(
+                    data.getColumnIndex(PopularMoviesContract.MovieEntry._ID));
+        } else {
+            movieDbId = -1;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+
     }
 
     public class TrailersQueryTask extends AsyncTask<URL, Void, List<Trailer>>{

@@ -9,11 +9,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,9 +22,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.popularmovies.Utils.NetworkUtils;
 import com.example.android.popularmovies.data.PopularMoviesContract;
@@ -36,20 +37,25 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class DetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
-    TextView movieTitleTextView;
-    ImageView moviePosterImageView;
-    TextView movieRatingTextView;
-    ImageView movieRatingImageView;
-    TextView movieDateTextView;
-    TextView movieSynopsisTextView;
-    ListView movieTrailersListView;
-    ListView movieReviewsListView;
-    TextView movieTrailersEmptyTextView;
-    TextView movieReviewsEmptyTextView;
+public class DetailsActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor>,
+        TrailersAdapter.ItemClickListener{
 
-    TrailersAdapter trailersAdapter;
+    @BindView(R.id.details_title_tv) TextView movieTitleTextView;
+    @BindView(R.id.details_poster_iv) ImageView moviePosterImageView;
+    @BindView(R.id.details_rating_tv) TextView movieRatingTextView;
+    @BindView(R.id.details_rating_icon) ImageView movieRatingImageView;
+    @BindView(R.id.details_date_tv) TextView movieDateTextView;
+    @BindView(R.id.details_synopsis_tv) TextView movieSynopsisTextView;
+    @BindView(R.id.details_trailers_rv) RecyclerView movieTrailersRecyclerView;
+    @BindView(R.id.details_reviews_lv) ListView movieReviewsListView;
+    @BindView(R.id.trailers_empty_tv) TextView movieTrailersEmptyTextView;
+    @BindView(R.id.reviews_empty_tv) TextView movieReviewsEmptyTextView;
+
+    private TrailersAdapter trailersAdapter;
     ReviewsAdapter reviewsAdapter;
     Movie selectedMovie = null;
 
@@ -73,17 +79,10 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
 
         selectedMovie = getIntent().getParcelableExtra("selectedMovie");
 
-        movieTitleTextView = findViewById(R.id.details_title_tv);
-        moviePosterImageView = findViewById(R.id.details_poster_iv);
-        movieRatingTextView = findViewById(R.id.details_rating_tv);
-        movieRatingImageView = findViewById(R.id.details_rating_icon);
-        movieDateTextView = findViewById(R.id.details_date_tv);
-        movieSynopsisTextView = findViewById(R.id.details_synopsis_tv);
-        movieTrailersListView = findViewById(R.id.details_trailers_lv);
-        movieReviewsListView = findViewById(R.id.details_reviews_lv);
-        movieTrailersEmptyTextView = findViewById(R.id.trailers_empty_tv);
-        movieReviewsEmptyTextView = findViewById(R.id.reviews_empty_tv);
-
+        ButterKnife.bind(this);
+        movieTrailersRecyclerView.setLayoutManager(new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL,
+                false));
 
         String movieTitle = selectedMovie.getTitle();
         int movieId = selectedMovie.getId();
@@ -279,24 +278,22 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
         protected void onPostExecute(List<Trailer> trailers) {
             if(trailers != null & !trailers.isEmpty()){
                 trailersAdapter = new TrailersAdapter(getApplicationContext(), trailers);
-                movieTrailersListView.setAdapter(trailersAdapter);
+                movieTrailersRecyclerView.setAdapter(trailersAdapter);
                 movieTrailersEmptyTextView.setVisibility(View.GONE);
+                trailersAdapter.setClickListener(DetailsActivity.this);
 
-
-                movieTrailersListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        Trailer selectedTrailer = (Trailer) adapterView.getItemAtPosition(i);
-
-                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse(selectedTrailer.getTrailerPath()));
-                        startActivity(youtubeIntent);
-                    }
-                });
             } else {
                 movieTrailersEmptyTextView.setText(R.string.empty_trailers_text_view);
             }
         }
+    }
+    @Override
+    public void onItemClick(View view, int position) {
+        Trailer selectedTrailer = trailersAdapter.getItem(position);
+
+        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse(selectedTrailer.getTrailerPath()));
+        startActivity(youtubeIntent);
     }
 
     public class ReviewsQueryTask extends AsyncTask<URL, Void, List<Review>>{

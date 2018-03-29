@@ -20,6 +20,11 @@
     <dimen name="details_trailer_icon_margin_left">8dp</dimen>
     <dimen name="details_trailer_name_size">18sp</dimen>
     <dimen name="details_trailer_name_margin_left">18dp</dimen>
+    <dimen name="trailer_item_thumbnail_height">160dp</dimen>
+    <dimen name="trailer_item_padding_top">8dp</dimen>
+    <dimen name="trailer_item_padding_bottom">8dp</dimen>
+    <dimen name="trailer_item_padding_left">4dp</dimen>
+    <dimen name="trailer_item_padding_right">4dp</dimen>
     <dimen name="review_item_padding_bottom">8dp</dimen>
     <dimen name="review_item_padding_left">8dp</dimen>
     <dimen name="review_item_user_text_size">18sp</dimen>

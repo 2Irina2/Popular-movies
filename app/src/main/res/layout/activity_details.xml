@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nc_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.android.popularmovies.DetailsActivity"
@@ -119,11 +120,12 @@
             android:paddingEnd="@dimen/details_label_padding_right"
             android:paddingStart="@dimen/details_label_padding_left" />
 
-        <com.example.android.popularmovies.NonScrollListView
-            android:id="@+id/details_trailers_lv"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/details_trailers_rv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/trailer_item_thumbnail_height"
             />
+
         <TextView
             android:id="@+id/trailers_empty_tv"
             android:layout_width="fill_parent"

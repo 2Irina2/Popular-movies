@@ -31,4 +31,7 @@
     <string name="error_database_empty">No favorite movies found</string>
     <string name="empty_trailers_text_view">No trailers found on TheMovieDb</string>
     <string name="empty_reviews_text_view">No reviews found on TheMovieDb</string>
+
+    <string name="trailer_item_thumbnail_descriptor">Trailer thumbnail</string>
+    <string name="trailer_item_play">Play trailer imageview</string>
 </resources>

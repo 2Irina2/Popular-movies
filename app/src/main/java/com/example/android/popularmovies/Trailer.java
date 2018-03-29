@@ -17,4 +17,5 @@ public class Trailer {
 
     public String getTrailerName(){ return mName; };
     public String getTrailerPath(){ return TRAILER_URL_BASE + mPath; };
+    public String getTrailerRawPath(){ return mPath;}
 }

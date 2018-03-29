@@ -1,6 +1,7 @@
 package com.example.android.popularmovies;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.support.v4.app.LoaderManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,32 +34,34 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
         RecyclerViewAdapter.ItemClickListener,
         LoaderManager.LoaderCallbacks<Cursor>{
 
-    private int NUMBER_COLUMNS = 2;
     private String criterion;
-    private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
     private List<Movie> finalMovieList;
-    private LinearLayout errorDisplayLinearLayout;
-    private ProgressBar loadingIndicatorProgressBar;
 
     private static final int MAIN_LOADER_ID = 0;
 
     private SQLiteDatabase mDb;
+
+
+    @BindView(R.id.loading_indicator) ProgressBar loadingIndicatorProgressBar;
+    @BindView(R.id.error_message) LinearLayout errorDisplayLinearLayout;
+    @BindView(R.id.movies_rv) RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        errorDisplayLinearLayout = findViewById(R.id.error_message);
-        loadingIndicatorProgressBar = findViewById(R.id.loading_indicator);
-        recyclerView = findViewById(R.id.movies_rv);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, NUMBER_COLUMNS));
+        ButterKnife.bind(this);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, calculateNoOfColumns(this)));
 
         PopularMoviesDbHelper dbHelper = PopularMoviesDbHelper.getInstance(this);
         mDb = dbHelper.getReadableDatabase();
@@ -137,15 +141,6 @@ public class MainActivity extends AppCompatActivity implements
             default:
                 return super .onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public void onItemClick(View view, int position) {
-        Movie selectedMovie = recyclerViewAdapter.getItem(position);
-
-        Intent startDetailsActivity = new Intent(this, DetailsActivity.class);
-        startDetailsActivity.putExtra("selectedMovie", selectedMovie);
-        startActivity(startDetailsActivity);
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -247,6 +242,15 @@ public class MainActivity extends AppCompatActivity implements
         recyclerViewAdapter.setClickListener(MainActivity.this);
     }
 
+    @Override
+    public void onItemClick(View view, int position) {
+        Movie selectedMovie = recyclerViewAdapter.getItem(position);
+
+        Intent startDetailsActivity = new Intent(this, DetailsActivity.class);
+        startDetailsActivity.putExtra("selectedMovie", selectedMovie);
+        startActivity(startDetailsActivity);
+    }
+
     public void readFromCursor(Cursor movies){
         if(movies.getCount() <= 0){
             errorDisplayLinearLayout.setVisibility(View.VISIBLE);
@@ -282,6 +286,16 @@ public class MainActivity extends AppCompatActivity implements
             //movies.close();
             setUpRecyclerViewAdapter();
         }
+    }
+
+    public static int calculateNoOfColumns(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int scalingFactor = 150;
+        int noOfColumns = (int) (dpWidth / scalingFactor);
+        if(noOfColumns < 2)
+            noOfColumns = 2;
+        return noOfColumns;
     }
 
 }
